@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "list.h"
 
 list_t *list_alloc() { 
@@ -28,7 +29,7 @@ void list_print(list_t *l, char* buffer) {
     node_t *traverser;
     printf("Now in print_list function:");
     for (traverser = l->head; traverser != NULL; traverser = traverser->next){
-          printf("%d ", traverser->value);
+          sprintf(buffer, "%s, %s ", traverser->key, traverser->value);
     }
 }
 
@@ -36,9 +37,9 @@ void list_print(list_t *l, char* buffer) {
 void list_add_to_front(list_t *l, char* key, char* value) {
     node_t *new_node = malloc(sizeof(node_t));
     new_node->key = malloc(strlen(key));
-    new_node->value = malloec(strlen(value));
+    new_node->value = malloc(strlen(value));
     strcpy(new_node->key, key);
-    strcpy(new_node->value, value)
+    strcpy(new_node->value, value);
     new_node->next = l->head;
     l->head = new_node; 
 }
@@ -51,7 +52,7 @@ void list_put(list_t *l, char* key, char* value) {
         node_t *traverser;
         for (traverser = l->head; traverser != NULL; traverser = traverser->next){
             if (strcmp(key,traverser->key) == 0){
-                traverser->value
+                traverser->value;
                 break;
             }
         }

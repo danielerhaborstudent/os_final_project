@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
-#include <list.h>
+#include "list.h"
 #define PORT 8080
 #define BUFFER_SIZE 1024
 #define MAXARGLEN 1024
@@ -27,14 +27,20 @@ typedef struct cmd_tokens{
 } cmd_tokens_t;
 
 
+
 void Tokenize(char* cmd, cmd_tokens_t* tokens);
 int ParseCommand(char* cmd, char* argv[]);
+void ProcessCommands(cmd_tokens_t* tokens, char* buffer);
+
+list_t* map;
+
 
 int main(){
     int server_socket, client_socket;
     char buffer[BUFFER_SIZE];
     struct sockaddr_in server_address, client_address;
     socklen_t client_address_size;
+    map = list_alloc();
 
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
@@ -75,9 +81,11 @@ int main(){
         cmd_tokens_t tokens;
         Tokenize(buffer, &tokens);
         
+        
 
         memset(buffer, '\0', BUFFER_SIZE);
-        strcpy(buffer, "Hello client. I got your message!");
+//         strcpy(buffer, "Hello client. I got your message!");
+        ProcessCommands(&tokens, buffer);
 
         if (write(client_socket, buffer, strlen(buffer)) < 0) {
             perror("write failed\n");
@@ -155,9 +163,20 @@ int ParseCommand(char* cmd, char* argv[]){
     
 }
 
-void process_commands(cmd_tokens_t* tokens){
-//     if (tokens->cmd_type == PUT){
-//         put_key_value_entry(tokens->arg1, tokens->arg2, )
-//     }
+void ProcessCommands(cmd_tokens_t* tokens, char* buffer){
+    if (tokens->cmd_type == PUT){
+        
+        list_put(map, tokens->arg1, tokens->arg2);
+        sprintf(buffer, "%s, %s", tokens->arg1, tokens->arg2);
+    }
+    else if (tokens->cmd_type == GET){
+//         sprintf(buffer, list_get_value_of_key(map, tokens->arg1));
+        strcpy(buffer, list_get_value_of_key(map, tokens->arg1);
+    
+    }
+    else if (tokens->cmd_type == DUMP){
+        list_print(map, buffer);
+    }
+    
     printf("Do nothing\n");
 }
