@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <pthread.h>
 #include "list.h"
 #define PORT 8080
 #define BUFFER_SIZE 1024
@@ -31,13 +32,16 @@ typedef struct cmd_tokens{
 void Tokenize(char* cmd, cmd_tokens_t* tokens);
 int ParseCommand(char* cmd, char* argv[]);
 void ProcessCommands(cmd_tokens_t* tokens, char* buffer);
+void * SocketThread(void *arg);
 
 list_t* map;
+char buffer[BUFFER_SIZE];
+pthread_mutex_t mutex;
 
 
 int main(){
     int server_socket, client_socket;
-    char buffer[BUFFER_SIZE];
+//     char buffer[BUFFER_SIZE];
     struct sockaddr_in server_address, client_address;
     socklen_t client_address_size;
     map = list_alloc();
@@ -58,44 +62,67 @@ int main(){
         exit(1);
     }
 
-    if( listen(server_socket,5) < 0){
+    if( listen(server_socket,25) < 0){
       perror("listen failed"); 
       exit(1);
     }
     else{
       printf("Listening.\n");
     }
-
-    client_address_size = sizeof (client_address);
-    if ( (client_socket = accept(server_socket, (struct sockaddr *) &client_address, &client_address_size)) < 0) {
-        perror("accept failed");
-        exit(1);
-    }
     
-    while(1){
+    pthread_mutex_init(&mutex, NULL);
+    pthread_t request_handlers[50];
+//     client_address_size = sizeof (client_address);
+//     if ( (client_socket = accept(server_socket, (struct sockaddr *) &client_address, &client_address_size)) < 0) {
+//         perror("accept failed");
+//         exit(1);
+//     }
+    
+//     while(1){
        
-        memset(buffer, '\0', BUFFER_SIZE);
-        read(client_socket, buffer, BUFFER_SIZE);
+//         memset(buffer, '\0', BUFFER_SIZE);
+//         read(client_socket, buffer, BUFFER_SIZE);
         
-//         printf("Raw command: %s\n", buffer );
-        cmd_tokens_t tokens;
-        Tokenize(buffer, &tokens);
+// //         printf("Raw command: %s\n", buffer );
+//         cmd_tokens_t tokens;
+//         Tokenize(buffer, &tokens);
         
         
 
-        memset(buffer, '\0', BUFFER_SIZE);
-//         strcpy(buffer, "Hello client. I got your message!");
-        ProcessCommands(&tokens, buffer);
+//         memset(buffer, '\0', BUFFER_SIZE);
+// //         strcpy(buffer, "Hello client. I got your message!");
+//         ProcessCommands(&tokens, buffer);
 
-        if (write(client_socket, buffer, strlen(buffer)) < 0) {
-            perror("write failed\n");
+//         if (write(client_socket, buffer, strlen(buffer)) < 0) {
+//             perror("write failed\n");
+//             exit(1);
+//         }
+//     }
+//  
+    
+    client_address_size = sizeof (client_address); 
+    int tid = 0;
+    while (1){
+        if ( (client_socket = accept(server_socket, (struct sockaddr *) &client_address, &client_address_size)) < 0) {
+            perror("accept failed");
             exit(1);
         }
+        pthread_create(&request_handlers[tid], NULL, SocketThread, (void*) &client_socket);
+        ++tid;
+        if( tid >= 50)
+        {
+          tid = 0;
+          while(tid < 50)
+          {
+            pthread_join(request_handlers[tid++],NULL);
+          }
+          tid = 0;
+        }
+        
     }
-    
 
     
-    close(client_socket);
+//     close(client_socket);
     close(server_socket);
 
     return 0;
@@ -179,4 +206,27 @@ void ProcessCommands(cmd_tokens_t* tokens, char* buffer){
     }
     
     printf("After processing commands\n");
+}
+
+void * SocketThread(void *arg){
+
+  int client_socket = *((int *)arg);
+  memset(buffer, '\0', BUFFER_SIZE);
+  read(client_socket, buffer, BUFFER_SIZE);
+  cmd_tokens_t tokens;
+
+  Tokenize(buffer, &tokens);
+  // Send message to the client socket 
+  pthread_mutex_lock(&mutex);
+  memset(buffer, '\0', BUFFER_SIZE);
+  ProcessCommands(&tokens, buffer);
+  pthread_mutex_unlock(&mutex);
+  
+  if (write(client_socket, buffer, strlen(buffer)) < 0) {
+        perror("write failed\n");
+        exit(1);
+  }
+  printf("Exit socketThread \n");
+  close(client_socket);
+  pthread_exit(NULL);
 }
