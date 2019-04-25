@@ -171,12 +171,12 @@ void ProcessCommands(cmd_tokens_t* tokens, char* buffer){
     }
     else if (tokens->cmd_type == GET){
 //         sprintf(buffer, list_get_value_of_key(map, tokens->arg1));
-        strcpy(buffer, list_get_value_of_key(map, tokens->arg1);
+        strcpy(buffer, list_get_value_of_key(map, tokens->arg1));
     
     }
     else if (tokens->cmd_type == DUMP){
         list_print(map, buffer);
     }
     
-    printf("Do nothing\n");
+    printf("After processing commands\n");
 }

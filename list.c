@@ -28,8 +28,19 @@ void list_free(list_t *l) {
 void list_print(list_t *l, char* buffer) {
     node_t *traverser;
     printf("Now in print_list function:");
-    for (traverser = l->head; traverser != NULL; traverser = traverser->next){
-          sprintf(buffer, "%s, %s ", traverser->key, traverser->value);
+    char* temp_buffer;
+    for (traverser = l->head; traverser != NULL; traverser = traverser->next){       
+          int temp_buffer_size = strlen(traverser->key) + strlen(traverser->value) + 1;
+          temp_buffer = malloc(temp_buffer_size);
+        
+          if (traverser->next == NULL){
+              sprintf(temp_buffer, "%s, %s ", traverser->key, traverser->value);
+              strcat(buffer, temp_buffer);
+          }
+          else{
+              sprintf(temp_buffer, "%s, %s\n", traverser->key, traverser->value);
+              strcat(buffer, temp_buffer);
+          }
     }
 }
 
@@ -52,7 +63,7 @@ void list_put(list_t *l, char* key, char* value) {
         node_t *traverser;
         for (traverser = l->head; traverser != NULL; traverser = traverser->next){
             if (strcmp(key,traverser->key) == 0){
-                traverser->value;
+                strcpy(traverser->value, value);
                 break;
             }
         }
