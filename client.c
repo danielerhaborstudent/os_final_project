@@ -17,11 +17,11 @@ int main(){
     struct sockaddr_in server_address;
     socklen_t server_address_size;
 
-    if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
-    { 
-        perror("socket failed\n");
-        exit(1);
-    } 
+//     if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+//     { 
+//         perror("socket failed\n");
+//         exit(1);
+//     } 
   
     memset(&server_address, '\0', sizeof(server_address));
     server_address.sin_family = AF_INET;
@@ -30,12 +30,20 @@ int main(){
 
 
     server_address_size = sizeof(server_address);
-    if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) { 
-        perror("Connection Failed\n"); 
-        exit(1);
-    }
+//     if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) { 
+//         perror("Connection Failed\n"); 
+//         exit(1);
+//     }
     
     while(1){
+        if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) { 
+                perror("socket failed\n");
+                exit(1);
+         } 
+        if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) { 
+            perror("Connection Failed\n"); 
+            exit(1);
+        }
         printf("> ");
         memset(buffer, '\0', BUFFER_SIZE);
         fgets(buffer, BUFFER_SIZE, stdin);
